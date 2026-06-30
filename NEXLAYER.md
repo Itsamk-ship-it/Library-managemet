@@ -15,7 +15,7 @@
 
 ## Project Summary
 <!-- nexlayer:section agent-managed=project_summary -->
-Bookworm is a full-stack library management system allowing users to browse catalogs, borrow/return books, and administrators to manage the collection through a dashboard. It features JWT authentication, Redis-backed session management, and a PostgreSQL database via Prisma ORM.
+Bookworm is a full-stack library management system allowing users to browse catalogs and borrow books, while providing administrators with a dashboard for collection management and user tracking.
 <!-- nexlayer:end -->
 
 ## Technology Stack
@@ -23,20 +23,21 @@ Bookworm is a full-stack library management system allowing users to browse cata
 | Name | Kind | Version | Detected From |
 |------|------|---------|---------------|
 | React | framework | 18 | README.md |
-| TypeScript | language | latest | README.md |
-| Node.js | language | latest | README.md |
-| Express | framework | latest | README.md |
-| Prisma | tool | latest | README.md |
+| TypeScript | language | unknown | README.md |
+| Node.js | language | unknown | README.md |
+| Express | framework | unknown | README.md |
 | PostgreSQL | database | 16 | docker-compose.yml |
+| Prisma | tool | unknown | README.md |
 | Redis | database | 7 | docker-compose.yml |
-| Nginx | infra | latest | README.md |
+| Vite | build | unknown | README.md |
+| Nginx | infra | unknown | README.md |
 <!-- nexlayer:end -->
 
 ## Repository Structure
 <!-- nexlayer:section agent-managed=structure_map -->
-- backend/ — Node.js Express API with Prisma ORM
-- frontend/ — React TypeScript SPA with Vite
-- docker-compose.yml — Orchestration for local development
+- backend/ — Express API, Prisma schema, and business logic
+- frontend/ — React SPA with Vite and TypeScript
+- docker-compose.yml — Local multi-container orchestration
 <!-- nexlayer:end -->
 
 ## External Services Required
@@ -76,70 +77,73 @@ JWT_SECRET=dev-secret-key
 
 | Pod | Variable | Value | Kind |
 |-----|----------|-------|------|
-| `backend` | `CLIENT_ORIGIN` | `"http://localhost:5173"` | plain |
-| `backend` | `DATABASE_URL` | `"postgresql://app:${POSTGRES_PASSWORD}@postgres.pod:5432/app"` | inter-pod |
+| `frontend` | `VITE_API_URL` | `"<% URL %>/api"` | plain |
+| `backend` | `NODE_ENV` | `production` | plain |
+| `backend` | `PORT` | `"4000"` | plain |
+| `backend` | `DATABASE_URL` | `"postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public"` | inter-pod |
+| `backend` | `REDIS_URL` | `"redis://redis.pod:6379"` | plain |
+| `backend` | `JWT_SECRET` | `"${JWT_SECRET}"` | inter-pod |
 | `backend` | `JWT_EXPIRES_IN` | _(set via Nexlayer dashboard)_ | secret |
-| `backend` | `JWT_SECRET` | _(set via Nexlayer dashboard)_ | secret |
+| `backend` | `CLIENT_ORIGIN` | `"<% URL %>"` | plain |
 | `backend` | `LOAN_PERIOD_DAYS` | `"14"` | plain |
 | `backend` | `MAX_CONCURRENT_BORROWS` | `"5"` | plain |
-| `backend` | `NODE_ENV` | `"development"` | plain |
-| `backend` | `PORT` | `"4000"` | plain |
-| `backend` | `REDIS_URL` | `"redis://redis.pod:6379"` | plain |
-| `frontend` | `API_URL` | `"http://backend.pod:3000"` | plain |
-| `frontend` | `NEXT_PUBLIC_API_URL` | `"http://backend.pod:3000"` | plain |
-| `frontend` | `VITE_API_PROXY` | `"http://localhost:4000"` | plain |
-| `frontend` | `VITE_API_URL` | `"http://backend.pod:3000"` | plain |
+| `postgres` | `POSTGRES_USER` | `library` | plain |
+| `postgres` | `POSTGRES_PASSWORD` | `"${POSTGRES_PASSWORD}"` | inter-pod |
+| `postgres` | `POSTGRES_DB` | `library` | plain |
+| `library-management-postgres-data` | `size` | `10Gi` | plain |
+| `library-management-postgres-data` | `mountPath` | `/var/lib/postgresql/data` | plain |
 
 ### Secrets Required
 
 Set these in the Nexlayer dashboard before deploying:
 
 - `JWT_EXPIRES_IN` (`backend` pod)
-- `JWT_SECRET` (`backend` pod)
 
 ### nexlayer.yaml
 
 ```yaml
 application:
-  name: calm-lake-library-managemet
+  name: library-management
   pods:
-    - name: backend
-      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet-backend:19f196c95fb"
-      path: /api
-      servicePorts:
-        - 3000
-      vars:
-        CLIENT_ORIGIN: "http://localhost:5173"
-        DATABASE_URL: "postgresql://app:${POSTGRES_PASSWORD}@postgres.pod:5432/app"
-        JWT_EXPIRES_IN: "7d"
-        JWT_SECRET: "change-me-to-a-long-random-string"
-        LOAN_PERIOD_DAYS: "14"
-        MAX_CONCURRENT_BORROWS: "5"
-        NODE_ENV: "development"
-        PORT: "4000"
-        REDIS_URL: "redis://redis.pod:6379"
     - name: frontend
-      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet-frontend:19f196c95fb"
+      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet:9f197d8-fix1"
       path: /
       servicePorts:
-        - 3000
+        - 80
       vars:
-        API_URL: "http://backend.pod:3000"
-        NEXT_PUBLIC_API_URL: "http://backend.pod:3000"
-        VITE_API_PROXY: "http://localhost:4000"
-        VITE_API_URL: "http://backend.pod:3000"
+        VITE_API_URL: "<% URL %>/api"
+    - name: backend
+      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet:9f197d8-fix1"
+      servicePorts:
+        - 4000
+      vars:
+        NODE_ENV: production
+        PORT: "4000"
+        DATABASE_URL: "postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public"
+        REDIS_URL: "redis://redis.pod:6379"
+        JWT_SECRET: "${JWT_SECRET}"
+        JWT_EXPIRES_IN: "7d"
+        CLIENT_ORIGIN: "<% URL %>"
+        LOAN_PERIOD_DAYS: "14"
+        MAX_CONCURRENT_BORROWS: "5"
     - name: postgres
       image: mirror.gcr.io/library/postgres:16-alpine
       servicePorts:
         - 5432
-      vars: {}
+      vars:
+        POSTGRES_USER: library
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+        POSTGRES_DB: library
+      volumes:
+        - name: library-management-postgres-data
+          size: 10Gi
+          mountPath: /var/lib/postgresql/data
     - name: redis
       image: mirror.gcr.io/library/redis:7-alpine
       servicePorts:
         - 6379
       vars: {}
 ```
-
 <!-- nexlayer:end -->
 
 ## Nexlayer Deployment Plan
@@ -169,45 +173,48 @@ application:
 
 ## Nexlayer Configuration
 <!-- nexlayer:section agent-managed=nexlayer_config -->
-**Last deployed:** 2026-06-30T16:54:51Z  
-**Live URL:** https://vibrant-wasp-calm-lake-library-managemet.cloud.nexlayer.ai  
-**Runtime:** multi · **Port:** 80  
-**Deploy branch:** main  
+**Last deployed:** 2026-06-30T17:13:39Z  
+**Live URL:** https://vibrant-wasp-library-management.cloud.nexlayer.ai  
+**Runtime:**  · **Port:** auto-detected  
+**Deploy branch:** nexlayer  
 
 ```yaml
 application:
-  name: calm-lake-library-managemet
+  name: library-management
   pods:
-    - name: backend
-      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet-backend:19f196c95fb"
-      path: /api
-      servicePorts:
-        - 3000
-      vars:
-        CLIENT_ORIGIN: "http://localhost:5173"
-        DATABASE_URL: "postgresql://app:${POSTGRES_PASSWORD}@postgres.pod:5432/app"
-        JWT_EXPIRES_IN: "7d"
-        JWT_SECRET: "change-me-to-a-long-random-string"
-        LOAN_PERIOD_DAYS: "14"
-        MAX_CONCURRENT_BORROWS: "5"
-        NODE_ENV: "development"
-        PORT: "4000"
-        REDIS_URL: "redis://redis.pod:6379"
     - name: frontend
-      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet-frontend:19f196c95fb"
+      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet:9f197d8-fix1"
       path: /
       servicePorts:
-        - 3000
+        - 80
       vars:
-        API_URL: "http://backend.pod:3000"
-        NEXT_PUBLIC_API_URL: "http://backend.pod:3000"
-        VITE_API_PROXY: "http://localhost:4000"
-        VITE_API_URL: "http://backend.pod:3000"
+        VITE_API_URL: "<% URL %>/api"
+    - name: backend
+      image: "registry.nexlayer.io/user_01kdnss9re3ack631zmxgpra36/library-managemet:9f197d8-fix1"
+      servicePorts:
+        - 4000
+      vars:
+        NODE_ENV: production
+        PORT: "4000"
+        DATABASE_URL: "postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public"
+        REDIS_URL: "redis://redis.pod:6379"
+        JWT_SECRET: "${JWT_SECRET}"
+        JWT_EXPIRES_IN: "7d"
+        CLIENT_ORIGIN: "<% URL %>"
+        LOAN_PERIOD_DAYS: "14"
+        MAX_CONCURRENT_BORROWS: "5"
     - name: postgres
       image: mirror.gcr.io/library/postgres:16-alpine
       servicePorts:
         - 5432
-      vars: {}
+      vars:
+        POSTGRES_USER: library
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+        POSTGRES_DB: library
+      volumes:
+        - name: library-management-postgres-data
+          size: 10Gi
+          mountPath: /var/lib/postgresql/data
     - name: redis
       image: mirror.gcr.io/library/redis:7-alpine
       servicePorts:
@@ -220,6 +227,7 @@ application:
 <!-- nexlayer:section agent-managed=build_history -->
 | Date | Status | Notes |
 |------|--------|-------|
-| 2026-06-30T16:46:43Z | analyzed | initial repo analysis |
-| 2026-06-30T16:54:51Z | success | deployed https://vibrant-wasp-calm-lake-library-managemet.cloud.nexlayer.ai |
+| 2026-06-30T17:05:21Z | analyzed | initial repo analysis |
+| 2026-06-30T17:13:39Z | success | deployed https://vibrant-wasp-library-management.cloud.nexlayer.ai |
 <!-- nexlayer:end -->
+
