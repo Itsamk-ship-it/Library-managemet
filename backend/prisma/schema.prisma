@@ -1,0 +1,83 @@
+// Prisma schema for the Library Management System
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BorrowStatus {
+  BORROWED
+  RETURNED
+  OVERDUE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowRecords BorrowRecord[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  books Book[]
+}
+
+model Book {
+  id          String   @id @default(uuid())
+  title       String
+  author      String
+  isbn        String?  @unique
+  description String?
+  coverUrl    String?
+  publishedAt Int? // year
+  totalCopies Int      @default(1)
+  available   Int      @default(1)
+  borrowCount Int      @default(0) // total times borrowed (popularity)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  borrowRecords BorrowRecord[]
+
+  @@index([title])
+  @@index([author])
+  @@index([categoryId])
+}
+
+model BorrowRecord {
+  id         String       @id @default(uuid())
+  status     BorrowStatus @default(BORROWED)
+  borrowedAt DateTime     @default(now())
+  dueAt      DateTime
+  returnedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bookId String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([status])
+}
