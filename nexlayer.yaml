@@ -1,0 +1,38 @@
+application:
+  name: calm-lake-library-managemet
+  pods:
+    - name: backend
+      image: "# filled by pipeline:backend"
+      path: /api
+      servicePorts:
+        - 3000
+      vars:
+        CLIENT_ORIGIN: "http://localhost:5173"
+        DATABASE_URL: "postgresql://app:${POSTGRES_PASSWORD}@postgres.pod:5432/app"
+        JWT_EXPIRES_IN: "7d"
+        JWT_SECRET: "change-me-to-a-long-random-string"
+        LOAN_PERIOD_DAYS: "14"
+        MAX_CONCURRENT_BORROWS: "5"
+        NODE_ENV: "development"
+        PORT: "4000"
+        REDIS_URL: "redis://redis.pod:6379"
+    - name: frontend
+      image: "# filled by pipeline:frontend"
+      path: /
+      servicePorts:
+        - 3000
+      vars:
+        API_URL: "http://backend.pod:3000"
+        NEXT_PUBLIC_API_URL: "http://backend.pod:3000"
+        VITE_API_PROXY: "http://localhost:4000"
+        VITE_API_URL: "http://backend.pod:3000"
+    - name: postgres
+      image: mirror.gcr.io/library/postgres:16-alpine
+      servicePorts:
+        - 5432
+      vars: {}
+    - name: redis
+      image: mirror.gcr.io/library/redis:7-alpine
+      servicePorts:
+        - 6379
+      vars: {}
