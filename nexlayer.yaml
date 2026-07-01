@@ -13,7 +13,7 @@ application:
       path: /api
       env:
         - name: DATABASE_URL
-          value: postgresql://library:library@postgres.pod:5432/library?schema=public
+          value: postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public
         - name: REDIS_URL
           value: redis://redis.pod:6379
         - name: NODE_ENV

@@ -15,7 +15,7 @@
 
 ## Project Summary
 <!-- nexlayer:section agent-managed=project_summary -->
-Bookworm is a full-stack library management system allowing users to browse catalogs and borrow books, while providing administrators with a dashboard for collection management and user tracking.
+Bookworm is a full-stack library management system allowing users to browse catalogs, borrow/return books, and track reading history, featuring an admin dashboard for collection management and Redis-backed caching.
 <!-- nexlayer:end -->
 
 ## Technology Stack
@@ -23,21 +23,20 @@ Bookworm is a full-stack library management system allowing users to browse cata
 | Name | Kind | Version | Detected From |
 |------|------|---------|---------------|
 | React | framework | 18 | README.md |
-| TypeScript | language | unknown | README.md |
-| Node.js | language | unknown | README.md |
-| Express | framework | unknown | README.md |
+| TypeScript | language | not specified | README.md |
+| Node.js | language | 20 | Dockerfile |
+| Express | framework | not specified | README.md |
 | PostgreSQL | database | 16 | docker-compose.yml |
-| Prisma | tool | unknown | README.md |
+| Prisma | tool | not specified | README.md |
 | Redis | database | 7 | docker-compose.yml |
-| Vite | build | unknown | README.md |
-| Nginx | infra | unknown | README.md |
+| Nginx | infra | alpine | Dockerfile |
 <!-- nexlayer:end -->
 
 ## Repository Structure
 <!-- nexlayer:section agent-managed=structure_map -->
-- backend/ — Express API, Prisma schema, and business logic
-- frontend/ — React SPA with Vite and TypeScript
-- docker-compose.yml — Local multi-container orchestration
+- frontend/ — React + Vite SPA
+- backend/ — Express API with Prisma ORM
+- backend/prisma/ — Database schema and migrations
 <!-- nexlayer:end -->
 
 ## External Services Required
@@ -77,7 +76,7 @@ JWT_SECRET=dev-secret-key
 
 | Pod | Variable | Value | Kind |
 |-----|----------|-------|------|
-| `DATABASE_URL` | `value` | `postgresql://library:library@postgres.pod:5432/library?schema=public` | plain |
+| `DATABASE_URL` | `value` | `postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public` | inter-pod |
 | `REDIS_URL` | `value` | `redis://redis.pod:6379` | plain |
 | `NODE_ENV` | `value` | `production` | plain |
 | `POSTGRES_USER` | `value` | `library` | plain |
@@ -102,7 +101,7 @@ application:
       path: /api
       env:
         - name: DATABASE_URL
-          value: postgresql://library:library@postgres.pod:5432/library?schema=public
+          value: postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public
         - name: REDIS_URL
           value: redis://redis.pod:6379
         - name: NODE_ENV
@@ -154,7 +153,7 @@ application:
 
 ## Nexlayer Configuration
 <!-- nexlayer:section agent-managed=nexlayer_config -->
-**Last deployed:** 2026-06-30T17:21:39Z  
+**Last deployed:** 2026-07-01T12:09:33Z  
 **Live URL:** https://vibrant-wasp-library-management.cloud.nexlayer.ai  
 **Runtime:**  · **Port:** auto-detected  
 **Deploy branch:** nexlayer  
@@ -175,7 +174,7 @@ application:
       path: /api
       env:
         - name: DATABASE_URL
-          value: postgresql://library:library@postgres.pod:5432/library?schema=public
+          value: postgresql://library:${POSTGRES_PASSWORD}@postgres.pod:5432/library?schema=public
         - name: REDIS_URL
           value: redis://redis.pod:6379
         - name: NODE_ENV
@@ -204,8 +203,9 @@ application:
 <!-- nexlayer:section agent-managed=build_history -->
 | Date | Status | Notes |
 |------|--------|-------|
-| 2026-06-30T17:05:21Z | analyzed | initial repo analysis |
-| 2026-06-30T17:21:39Z | success | deployed https://vibrant-wasp-library-management.cloud.nexlayer.ai |
+| 2026-07-01T12:03:25Z | analyzed | initial repo analysis |
+| 2026-07-01T12:09:33Z | success | deployed https://vibrant-wasp-library-management.cloud.nexlayer.ai |
 <!-- nexlayer:end -->
+
 
 
