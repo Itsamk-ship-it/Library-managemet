@@ -15,7 +15,7 @@
 
 ## Project Summary
 <!-- nexlayer:section agent-managed=project_summary -->
-Bookworm is a full-stack library management system allowing users to browse catalogs, borrow/return books, and track reading history, featuring an admin dashboard for collection management and Redis-backed caching.
+Bookworm is a full-stack library management system allowing users to browse catalogs, borrow/return books, and track reading history, with an admin dashboard for collection management.
 <!-- nexlayer:end -->
 
 ## Technology Stack
@@ -23,19 +23,19 @@ Bookworm is a full-stack library management system allowing users to browse cata
 | Name | Kind | Version | Detected From |
 |------|------|---------|---------------|
 | React | framework | 18 | README.md |
-| TypeScript | language | not specified | README.md |
 | Node.js | language | 20 | Dockerfile |
-| Express | framework | not specified | README.md |
+| Express | framework | Not specified | README.md |
 | PostgreSQL | database | 16 | docker-compose.yml |
-| Prisma | tool | not specified | README.md |
 | Redis | database | 7 | docker-compose.yml |
+| Prisma | tool | Not specified | README.md |
 | Nginx | infra | alpine | Dockerfile |
+| TypeScript | language | Not specified | README.md |
 <!-- nexlayer:end -->
 
 ## Repository Structure
 <!-- nexlayer:section agent-managed=structure_map -->
-- frontend/ — React + Vite SPA
-- backend/ — Express API with Prisma ORM
+- frontend/ — React SPA source and Vite config
+- backend/ — Node.js Express API and business logic
 - backend/prisma/ — Database schema and migrations
 <!-- nexlayer:end -->
 
@@ -153,7 +153,7 @@ application:
 
 ## Nexlayer Configuration
 <!-- nexlayer:section agent-managed=nexlayer_config -->
-**Last deployed:** 2026-07-01T12:09:33Z  
+**Last deployed:** 2026-07-01T12:24:05Z  
 **Live URL:** https://vibrant-wasp-library-management.cloud.nexlayer.ai  
 **Runtime:**  · **Port:** auto-detected  
 **Deploy branch:** nexlayer  
@@ -203,9 +203,10 @@ application:
 <!-- nexlayer:section agent-managed=build_history -->
 | Date | Status | Notes |
 |------|--------|-------|
-| 2026-07-01T12:03:25Z | analyzed | initial repo analysis |
-| 2026-07-01T12:09:33Z | success | deployed https://vibrant-wasp-library-management.cloud.nexlayer.ai |
+| 2026-07-01T12:18:04Z | analyzed | initial repo analysis |
+| 2026-07-01T12:24:05Z | success | deployed https://vibrant-wasp-library-management.cloud.nexlayer.ai |
 <!-- nexlayer:end -->
+
 
 
 
